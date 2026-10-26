@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  machine-agent:
+    image: appdynamics/machine-agent:latest
+    container_name: machine-agent
+    restart: unless-stopped
+
+    # Dynamically inject the Docker group GID (983) from .env
+    group_add:
+      - "${DOCKER_GID:?DOCKER_GID is not set in .env}"
+
+    # Required system mounts for Docker & Host Monitoring
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc:/host/etc:ro
+
+    # Pass all AppDynamics parameters directly from .env
+    environment:
+      - APPDYNAMICS_CONTROLLER_HOST_NAME=${APPDYNAMICS_CONTROLLER_HOST_NAME}
+      - APPDYNAMICS_CONTROLLER_PORT=${APPDYNAMICS_CONTROLLER_PORT}
+      - APPDYNAMICS_CONTROLLER_SSL_ENABLED=${APPDYNAMICS_CONTROLLER_SSL_ENABLED:-false}
+      - APPDYNAMICS_AGENT_ACCOUNT_NAME=${APPDYNAMICS_AGENT_ACCOUNT_NAME}
+      - APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY=${APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY}
+      - MACHINE_AGENT_PROPERTIES=${MACHINE_AGENT_PROPERTIES}
